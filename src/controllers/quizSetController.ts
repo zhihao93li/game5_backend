@@ -52,6 +52,50 @@ export class QuizSetController {
       res.status(500).json({ message: '重置答题记录失败', error: (error as Error).message });
     }
   }
+
+  async getSummary(req: AuthRequest, res: Response) {
+    const { quizSetId } = req.params;
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({ message: '未授权' });
+    }
+
+    try {
+      const userAnswerRecordService = new UserAnswerRecordService();
+      const summary = await userAnswerRecordService.getSummary(userId, quizSetId);
+      res.status(200).json(summary);
+    } catch (error) {
+      res.status(500).json({ message: '获取Summary失败', error: (error as Error).message });
+    }
+  }
+
+  async getQuizSetById(req: AuthRequest, res: Response) {
+    const { quizSetId } = req.params;
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({ message: '未授权' });
+    }
+
+    try {
+      const quizSet = await this.quizSetService.getQuizSetById(quizSetId);
+      if (!quizSet) {
+        return res.status(404).json({ message: '题库不存在' });
+      }
+
+      const userRecord = await this.userAnswerRecordService.getRecord(userId, quizSetId);
+      const quizSetWithProgress = {
+        ...quizSet.toObject(),
+        progress: userRecord ? userRecord.progress : 0,
+        completed: userRecord ? userRecord.completed : false
+      };
+
+      res.status(200).json(quizSetWithProgress);
+    } catch (error) {
+      res.status(500).json({ message: '获取题库失败', error: (error as Error).message });
+    }
+  }
 }
 
 export const quizSetController = new QuizSetController();

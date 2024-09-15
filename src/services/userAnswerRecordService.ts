@@ -3,6 +3,12 @@ import UserAnswerRecord from '../models/UserAnswerRecord';
 import QuizSet from '../models/QuizSet';
 import Question from '../models/Question';
 
+// 或者直接在文件中定义接口
+interface SummaryData {
+  answers: string[];
+  similarPathsCount: number;
+}
+
 export class UserAnswerRecordService {
   async createRecord(userId: string, quizSetId: string): Promise<IUserAnswerRecord> {
     const quizSet = await QuizSet.findOne({ quizSetId });
@@ -25,29 +31,26 @@ export class UserAnswerRecordService {
   }
 
   async updateRecord(userId: string, quizSetId: string, optionNumber: string, orderInSet: number): Promise<IUserAnswerRecord> {
-    let record = await UserAnswerRecord.findOne({ userId, quizSetId });
+    const recordId = `${userId}_${quizSetId}`;
+    let record = await UserAnswerRecord.findOne({ recordId });
     if (!record) {
-      record = await UserAnswerRecord.create(await this.createRecord(userId, quizSetId));
+      record = await this.createRecord(userId, quizSetId);
     }
-  
+
     const question = await Question.findOne({ quizSetId, orderInSet });
     if (!question) {
       throw new Error('Question not found');
     }
-  
+
     const isValidOption = question.options.some(option => option.optionNumber === optionNumber);
     if (!isValidOption) {
       throw new Error('Invalid option number');
     }
-  
-    if (record) {
-      record.answers[orderInSet - 1] = optionNumber;
-      record.progress = Math.max(record.progress, orderInSet);
-      record.completed = record.progress === record.answers.length;
-    } else {
-      throw new Error('记录不存在');
-    }
-  
+
+    record.answers[orderInSet - 1] = optionNumber;
+    record.progress = Math.max(record.progress, orderInSet);
+    record.completed = record.progress === record.answers.length;
+
     await record.save();
     return record;
   }
@@ -99,6 +102,20 @@ export class UserAnswerRecordService {
     });
 
     return count;
+  }
+
+  async getSummary(userId: string, quizSetId: string): Promise<{ answers: string[], similarPathsCount: number }> {
+    const record = await this.getRecord(userId, quizSetId);
+    if (!record) {
+      throw new Error('未找到答题记录');
+    }
+
+    const similarPathsCount = await this.getSimilarPathsCount(userId, quizSetId);
+
+    return {
+      answers: record.answers,
+      similarPathsCount
+    };
   }
 }
 

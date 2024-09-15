@@ -4,6 +4,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { OAuth2Client } from 'google-auth-library';
 import dotenv from 'dotenv';
+import { v4 as uuidv4 } from 'uuid';
 dotenv.config();
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -83,6 +84,67 @@ export const AuthService = {
     const token = this.generateToken(user._id);
 
     return { user, token: `Bearer ${token}` };
+  },
+
+  async googleAuthCallback(accessToken: string, refreshToken: string, profile: any, done: any) {
+    try {
+      let user = await User.findOne({ googleId: profile.id });
+      if (!user) {
+        user = new User({
+          userId: uuidv4(),
+          googleId: profile.id,
+          email: profile.emails[0].value,
+          nickname: profile.displayName,
+          passwordHash: await bcrypt.hash(Math.random().toString(36), 10)
+        });
+        await user.save();
+      }
+      console.log('Google auth user:', user);
+      done(null, user);
+    } catch (error) {
+      console.error('Google auth callback error:', error);
+      done(error, null);
+    }
+  },
+
+  async facebookAuthCallback(accessToken: string, refreshToken: string, profile: any, done: any) {
+    try {
+      let user = await User.findOne({ facebookId: profile.id });
+      if (!user) {
+        user = new User({
+          userId: uuidv4(),
+          facebookId: profile.id,
+          email: profile.emails[0].value,
+          nickname: profile.name.givenName + ' ' + profile.name.familyName,
+          passwordHash: await bcrypt.hash(Math.random().toString(36), 10)
+        });
+        await user.save();
+      }
+      const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '1d' });
+      done(null, { user, token });
+    } catch (error) {
+      done(error, null);
+    }
+  },
+
+  async twitterAuthCallback(token: string, tokenSecret: string, profile: any, done: any) {
+    try {
+      let user = await User.findOne({ twitterId: profile.id });
+      if (!user) {
+        user = new User({
+          userId: uuidv4(),
+          twitterId: profile.id,
+          nickname: profile.username,
+          email: profile.emails && profile.emails[0] ? profile.emails[0].value : `${profile.username}@twitter.com`,
+          passwordHash: await bcrypt.hash(Math.random().toString(36), 10)
+        });
+        await user.save();
+      }
+      const jwtToken = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '1d' });
+      done(null, { user, token: jwtToken });
+    } catch (error) {
+      done(error, null);
+    }
   },
 
   generateToken(userId: string): string {

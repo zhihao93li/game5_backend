@@ -20,12 +20,6 @@ const UserSchema: Schema = new Schema({
     unique: true,
     lowercase: true,
     trim: true,
-    validate: {
-      validator: function(v: string) {
-        return /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(v);
-      },
-      message: 'Please enter a valid email'
-    }
   },
   passwordHash: { type: String },
   nickname: { type: String, required: true },
@@ -46,4 +40,5 @@ UserSchema.methods.comparePassword = async function(candidatePassword: string): 
   return bcrypt.compare(candidatePassword, this.passwordHash);
 };
 
-export default mongoose.model<IUser>('User', UserSchema);
+const User = mongoose.model<IUser>('User', UserSchema);
+export default User;

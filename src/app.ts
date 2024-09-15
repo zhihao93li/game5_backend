@@ -6,18 +6,34 @@ import { loggingMiddleware } from './middleware/loggingMiddleware';
 import { rateLimitMiddleware, answerRateLimitMiddleware } from './middleware/rateLimitMiddleware';
 import authRoutes from './routes/authRoutes';
 import questionRoutes from './routes/questionRoutes';
+import session from 'express-session';
 import quizSetRoutes from './routes/quizSetRoutes';
 import './config/database'; // 导入数据库连接
 import dotenv from 'dotenv';
 dotenv.config();
 
+
 const app = express();
+app.set('trust proxy', 1);  // 如果在代理后面运行
 
 // 中间件
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
+
+// 使用 session 中间件
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'your_session_secret',
+  resave: false,
+  saveUninitialized: false, // 改为 false
+  cookie: { 
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 24 * 60 * 60 * 1000 // 24 小时
+  }
+}));
+
 app.use(passport.initialize());
+app.use(passport.session());
 
 // 使用通用限速中间件
 app.use(rateLimitMiddleware);
