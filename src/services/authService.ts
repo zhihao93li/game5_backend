@@ -57,6 +57,20 @@ export const AuthService = {
     return { user, token: `Bearer ${token}` };
   },
 
+  async registerAndLogin(userData: Partial<IUser> & { userId: string, password: string }): Promise<{ user: IUser; token: string }> {
+    const user = await this.register(userData);
+    if (!user) {
+      throw new Error('注册失败');
+    }
+    const token = this.generateToken(user._id);
+    return { user, token: `Bearer ${token}` };
+  },
+
+  async logout(userId: string): Promise<void> {
+    await User.findByIdAndUpdate(userId, { $set: { isLoggedIn: false } });
+  },
+
+
   async googleLogin(idToken: string): Promise<{ user: IUser; token: string }> {
     const ticket = await googleClient.verifyIdToken({
       idToken,
@@ -120,8 +134,7 @@ export const AuthService = {
         });
         await user.save();
       }
-      const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '1d' });
-      done(null, { user, token });
+      done(null, user);
     } catch (error) {
       done(error, null);
     }
@@ -140,8 +153,7 @@ export const AuthService = {
         });
         await user.save();
       }
-      const jwtToken = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '1d' });
-      done(null, { user, token: jwtToken });
+      done(null, user);
     } catch (error) {
       done(error, null);
     }

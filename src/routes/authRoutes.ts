@@ -18,4 +18,6 @@ router.get('/facebook/callback', authController.facebookAuthCallback);
 router.get('/twitter', authController.twitterAuth);
 router.get('/twitter/callback', authController.twitterAuthCallback);
 
+router.post('/register-and-login', authController.registerAndLogin);
+
 export default router;
