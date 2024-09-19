@@ -56,11 +56,11 @@ export class QuizSetController {
   async getSummary(req: AuthRequest, res: Response) {
     const { quizSetId } = req.params;
     const userId = req.user?.userId;
-
+  
     if (!userId) {
       return res.status(401).json({ message: '未授权' });
     }
-
+  
     try {
       const userAnswerRecordService = new UserAnswerRecordService();
       const summary = await userAnswerRecordService.getSummary(userId, quizSetId);

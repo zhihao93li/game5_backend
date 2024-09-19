@@ -9,6 +9,11 @@ interface SummaryData {
   similarPathsCount: number;
 }
 
+interface QuizAnswer {
+  questionNumber: number;
+  userAnswer: string;
+}
+
 export class UserAnswerRecordService {
   async createRecord(userId: string, quizSetId: string): Promise<IUserAnswerRecord> {
     const quizSet = await QuizSet.findOne({ quizSetId });
@@ -112,17 +117,28 @@ export class UserAnswerRecordService {
     return count;
   }
 
-  async getSummary(userId: string, quizSetId: string): Promise<{ answers: string[], similarPathsCount: number }> {
+  async getSummary(userId: string, quizSetId: string): Promise<{ quizTitle: string; answers: QuizAnswer[]; totalSimilarPaths: number }> {
     const record = await this.getRecord(userId, quizSetId);
     if (!record) {
       throw new Error('未找到答题记录');
     }
 
-    const similarPathsCount = await this.getSimilarPathsCount(userId, quizSetId);
+    const quizSet = await QuizSet.findOne({ quizSetId });
+    if (!quizSet) {
+      throw new Error('未找到题库');
+    }
+
+    const totalSimilarPaths = await this.getSimilarPathsCount(userId, quizSetId);
+
+    const answers: QuizAnswer[] = record.answers.map((answer, index) => ({
+      questionNumber: index + 1,
+      userAnswer: answer
+    }));
 
     return {
-      answers: record.answers,
-      similarPathsCount
+      quizTitle: quizSet.title,
+      answers,
+      totalSimilarPaths
     };
   }
 }

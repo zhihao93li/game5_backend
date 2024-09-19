@@ -188,8 +188,12 @@
   - **响应体:**
     ```typescript
     {
-      answers: Array<string>; // 用户答案列表
-      similarPathsCount: number; // 相似路径数量
+      quizTitle: string;
+      answers: Array<{
+        questionNumber: number;
+        userAnswer: string;
+      }>;
+      totalSimilarPaths: number;
     }
     ```
 
