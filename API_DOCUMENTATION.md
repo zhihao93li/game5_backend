@@ -237,6 +237,27 @@
     }
     ```
 
+### 获取用户问题信息
+- **URL:** `/api/questions/info/:quizSetId`
+- **方法:** `GET`
+- **描述:** 获取用户在特定题库中的问题信息
+- **请求头:** 
+  - `Authorization: Bearer <token>`
+- **成功响应:** 
+  - **状态码:** 200
+  - **响应体:**
+    ```typescript
+    {
+      currentProgress: number;     // 当前进度
+      totalQuestions: number;      // 题目总数
+      nextQuestionOrder: number;   // 下一题的题目编号
+      nextQuestionContent: string | null; // 下一题的题目内容
+      similarPathsCount: number;   // 当前的相似答题路径数量
+      completed: boolean;          // 是否已完成所有问题
+    }
+    ```
+
+
 ### 提交答案
 - **URL:** `/api/questions/submit/:quizSetId`
 - **方法:** `POST`

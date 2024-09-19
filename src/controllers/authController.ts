@@ -41,17 +41,9 @@ export class AuthController {
     }
   }
 
-  logout(req: AuthRequest, res: Response, next: NextFunction) {
-    if (req.user) {
-      req.logout((err) => {
-        if (err) {
-          return next(err);
-        }
-        res.status(200).json({ message: '登出成功' });
-      });
-    } else {
-      res.status(401).json({ message: '未认证的用户' });
-    }
+  logout(req: AuthRequest, res: Response) {
+    console.log('用户登出成功');
+    res.status(200).json({ message: '登出成功' });
   }
 
   googleAuth(req: Request, res: Response) {

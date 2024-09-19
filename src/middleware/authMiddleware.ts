@@ -15,8 +15,10 @@ export interface AuthRequest extends Request {
 }
 
 export const authMiddleware: RequestHandler = (req: AuthRequest, res: Response, next: NextFunction) => {
+  console.log('Auth middleware called');
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    console.log('No valid Bearer token provided');
     return res.status(401).json({ message: '未提供有效的Bearer Token' });
   }
 

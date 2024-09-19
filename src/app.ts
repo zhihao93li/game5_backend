@@ -41,6 +41,12 @@ app.use(rateLimitMiddleware);
 // 使用日志中间件
 app.use(loggingMiddleware);
 
+// 全局记录请求中间件
+app.use((req, res, next) => {
+  console.log(`Received ${req.method} request to ${req.url}`);
+  next();
+});
+
 // 路由
 app.use('/api/auth', authRoutes);
 app.use('/api/questions', questionRoutes);

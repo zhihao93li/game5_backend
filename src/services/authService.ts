@@ -66,10 +66,6 @@ export const AuthService = {
     return { user, token: `Bearer ${token}` };
   },
 
-  async logout(userId: string): Promise<void> {
-    await User.findByIdAndUpdate(userId, { $set: { isLoggedIn: false } });
-  },
-
 
   async googleLogin(idToken: string): Promise<{ user: IUser; token: string }> {
     const ticket = await googleClient.verifyIdToken({

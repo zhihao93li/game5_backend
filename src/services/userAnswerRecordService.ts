@@ -80,10 +80,18 @@ export class UserAnswerRecordService {
 
   //获取用户答题进度
   async getUserProgress(userId: string, quizSetId: string): Promise<number> {
+    console.log('getUserProgress called with:', { userId, quizSetId });
     const userRecord = await this.getRecord(userId, quizSetId);
+    console.log('User record found:', userRecord);
     if (!userRecord) {
+      console.log('No user record found, returning 0');
       return 0;
     }
+    if (typeof userRecord.progress !== 'number' || isNaN(userRecord.progress)) {
+      console.log('Invalid progress value:', userRecord.progress);
+      return 0;
+    }
+    console.log('Returning progress:', userRecord.progress);
     return userRecord.progress;
   }
 

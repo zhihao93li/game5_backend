@@ -66,6 +66,27 @@ export class QuestionController {
       res.status(500).json({ message: '获取问题失败', error: (error as Error).message });
     }
   }
+
+  async getQuestionInfoByUser(req: AuthRequest, res: Response) {
+    const { quizSetId } = req.params;
+    const userId = req.user?.userId;
+
+    console.log('getQuestionInfoByUser controller called with:', { quizSetId, userId });
+
+    if (!userId) {
+      return res.status(401).json({ message: '未授权' });
+    }
+
+    try {
+      const questionInfo = await this.questionService.getQuestionInfoByUser(userId, quizSetId);
+      console.log('Question info retrieved:', questionInfo);
+      res.status(200).json(questionInfo);
+    } catch (error) {
+      console.error('Error in getQuestionInfoByUser:', error);
+      res.status(500).json({ message: '获取问题信息失败', error: (error as Error).message });
+    }
+  }
+
 }
 
-export default new QuestionController();
+export const questionController = new QuestionController();
